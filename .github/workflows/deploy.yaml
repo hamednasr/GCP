@@ -10,28 +10,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Step 1: Checkout the code
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      # Step 1: Checkout the code
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    # Step 2: Set up Docker
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      # Step 2: Set up Google Cloud SDK
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          service_account_key: ${{ secrets.GCP }}
+          project_id: core-dev-435517
 
-    # Step 3: Authenticate with GCP
-    - name: Authenticate with GCP
-      run: |
-        echo "${{ secrets.GCP }}" > /tmp/gcp-key.json
-        # Debug: Check if the key file is correctly written
-        # Uncomment the next line only for debugging purposes. Do NOT use this in production as it may expose sensitive data.
-        cat /tmp/gcp-key.json
+      # Step 3: Authenticate Docker to use GAR
+      - name: Authenticate Docker
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
 
-        gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
-        gcloud config set project core-dev-435517
-        gcloud auth configure-docker us-central1-docker.pkg.dev
+      # Step 4: Build the Docker image
+      - name: Build Docker Image
+        run: |
+          docker build -t us-central1-docker.pkg.dev/core-dev-435517/transcription-container/inference-github:latest .
 
-    # Step 4: Build and push Docker image
-    - name: Build and Push Docker Image
-      run: |
-        docker build -t us-central1-docker.pkg.dev/core-dev-435517/transcription-container/inference-github:latest .
-        docker push us-central1-docker.pkg.dev/core-dev-435517/transcription-container/inference-github:latest
+      # Step 5: Push the Docker image to GAR
+      - name: Push Docker Image to GCP
+        run: |
+          docker push us-central1-docker.pkg.dev/core-dev-435517/transcription-container/inference-github:latest
+
+      # Step 6: Verify the image exists in GAR (optional)
+      - name: Verify Docker Image in GAR
+        run: |
+          gcloud artifacts docker images list us-central1-docker.pkg.dev/core-dev-435517/transcription-container
