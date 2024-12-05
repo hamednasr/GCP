@@ -24,7 +24,7 @@ jobs:
         echo "${{ secrets.GCP }}" > /tmp/gcp-key.json
         # Debug: Check if the key file is correctly written
         # Uncomment the next line only for debugging purposes. Do NOT use this in production as it may expose sensitive data.
-        # cat /tmp/gcp-key.json
+        cat /tmp/gcp-key.json
 
         gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
         gcloud config set project core-dev-435517
