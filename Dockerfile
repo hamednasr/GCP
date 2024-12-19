@@ -31,7 +31,7 @@ RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose the port the app runs on
-EXPOSE 8087
+EXPOSE 8089
 
 # Set the command to run the Flask app
 CMD ["python", "inference-flask.py"]
